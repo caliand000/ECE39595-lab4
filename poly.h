@@ -4,6 +4,7 @@
 #include <vector>
 #include <utility>
 #include <cstddef>
+#include <iostream>
 
 using power = size_t;
 using coeff = int;
@@ -12,6 +13,16 @@ class polynomial
 {
 
 public:
+    /*
+    * The polynomial is represented as a vector of pairs. Each pair contains a
+    * coefficient and a power. The polynomial is the sum of all the terms in the
+    * vector. The power is the exponent of the term, and the coefficient is the
+    * coefficient of the term. For example, the polynomial 3x^2 + 2x + 1 would
+    * be represented as the vector [(2,3),(1,2),(0,1)].
+    */
+
+    std::vector<std::pair<power, coeff>> terms;
+
     /**
      * @brief Construct a new polynomial object that is the number 0 (ie. 0x^0)
      *
@@ -29,7 +40,11 @@ public:
      *  The end of the container to copy elements from
      */
     template <typename Iter>
-    polynomial(Iter begin, Iter end);
+    polynomial(Iter begin, Iter end){
+        for(Iter it = begin; it!=end; it++) {
+            terms.push_back(*it);
+        }
+    }
 
     /**
      * @brief Construct a new polynomial object from an existing polynomial object
