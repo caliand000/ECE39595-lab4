@@ -57,6 +57,21 @@ int main()
     std::cout << "20 + poly2: ";
     int_plus_poly.print();
 
+    // Multiplication of two polynomials
+    polynomial poly_product = p1 * p2;
+    std::cout << "poly1 * poly2: ";
+    poly_product.print();
+
+    // Multiplication of a polynomial and an integer
+    polynomial poly_times_int = p1 * 10;
+    std::cout << "poly1 * 10: ";
+    poly_times_int.print();
+
+    // Multiplication of an integer and a polynomial
+    polynomial int_times_poly = 20 * p2;
+    std::cout << "20 * poly2: ";
+    int_times_poly.print();
+
     // std::optional<double> result = poly_test(p1, p2, solution);
 
     // if (result.has_value())

@@ -101,6 +101,15 @@ public:
     // Friend function for addition of an integer and a polynomial
     friend polynomial operator+(int value, const polynomial &poly);
 
+    // Multiplication of two polynomials
+    polynomial operator*(const polynomial &other) const;
+
+    // Multiplication of a polynomial and an integer
+    polynomial operator*(int value) const;
+
+    // Friend function for multiplication of an integer and a polynomial
+    friend polynomial operator*(int value, const polynomial &poly);
+
     
 
     /**

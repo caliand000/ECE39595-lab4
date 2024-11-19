@@ -71,6 +71,46 @@ polynomial operator+(int value, const polynomial &poly) {
     return poly + value;
 }
 
+// Multiplication of two polynomials
+polynomial polynomial::operator*(const polynomial &other) const {
+    polynomial result;
+    result.terms.clear(); // Clear the default term (0, 0)
+
+    for (const auto &term1 : terms) {
+        for (const auto &term2 : other.terms) {
+            power new_power = term1.first + term2.first;
+            coeff new_coeff = term1.second * term2.second;
+
+            bool found = false;
+            for (auto &res_term : result.terms) {
+                if (res_term.first == new_power) {
+                    res_term.second += new_coeff;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                result.terms.push_back(std::make_pair(new_power, new_coeff));
+            }
+        }
+    }
+    return result;
+}
+
+// Multiplication of a polynomial and an integer
+polynomial polynomial::operator*(int value) const {
+    polynomial result = *this;
+    for (auto &term : result.terms) {
+        term.second *= value;
+    }
+    return result;
+}
+
+// Multiplication of an integer and a polynomial
+polynomial operator*(int value, const polynomial &poly) {
+    return poly * value;
+}
+
 size_t polynomial::find_degree_of() {
     size_t highest_degree = 0;
     for (const auto &term : terms) {
