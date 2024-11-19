@@ -91,6 +91,16 @@ public:
      * Modulo (%) should support
      * 1. polynomial % polynomial
      */
+
+    // Addition of two polynomials
+    polynomial operator+(const polynomial &other) const;
+
+    // Addition of a polynomial and an integer
+    polynomial operator+(int value) const;
+
+    // Friend function for addition of an integer and a polynomial
+    friend polynomial operator+(int value, const polynomial &poly);
+
     
 
     /**

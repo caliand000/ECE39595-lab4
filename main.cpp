@@ -40,8 +40,22 @@ int main()
     polynomial p1(poly_input.begin(), poly_input.end());
     polynomial p2(poly_input.begin(), poly_input.end());
 
+    polynomial p3 = p1 + p2;
+
     p1.print();
     p2.print();
+    std::cout << "poly1 + poly2: ";
+    p3.print();
+
+    // Addition of a polynomial and an integer
+    polynomial poly_plus_int = p1 + 10;
+    std::cout << "poly1 + 10: ";
+    poly_plus_int.print();
+
+    // Addition of an integer and a polynomial
+    polynomial int_plus_poly = 20 + p2;
+    std::cout << "20 + poly2: ";
+    int_plus_poly.print();
 
     // std::optional<double> result = poly_test(p1, p2, solution);
 
