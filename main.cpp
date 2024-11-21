@@ -32,46 +32,43 @@
 int main()
 {
     /** We're doing (x+1)^2, so solution is x^2 + 2x + 1*/
-    std::vector<std::pair<power, coeff>> solution = {{2,1}, {1,2}, {0,1}};
+    //std::vector<std::pair<power, coeff>> solution = {{3,1}, {2,-2}, {1,0}, {0,-4}};
 
     /** This holds (x+1), which we'll pass to each polynomial */
-    std::vector<std::pair<power, coeff>> poly_input = {{1,1}, {0,1}};
+    // std::vector<std::pair<power, coeff>> poly_input = {{3,1}, {2,-2}, {1,0}, {0,-4}};
+    // std::vector<std::pair<power, coeff>> poly_input2 = {{1,1}, {0, -3}};
+    // 3x4−5x2+3 by x+2.
+    std::vector<std::pair<power, coeff>> poly_input = {{4,3}, {2,-5}, {0,3}};
+    std::vector<std::pair<power, coeff>> poly_input2 = {{1,1}, {0, 2}};
 
+    // std::vector<std::pair<power, coeff>> poly_input = {{3,1}, {2,1},{1,1}, {0,1}};
+    // std::vector<std::pair<power, coeff>> poly_input2 = {{1,1}, {0, 9}};
     polynomial p1(poly_input.begin(), poly_input.end());
-    polynomial p2(poly_input.begin(), poly_input.end());
-
-    polynomial p3 = p1 + p2;
+    polynomial p2(poly_input2.begin(), poly_input2.end());
 
     p1.print();
     p2.print();
-    std::cout << "poly1 + poly2: ";
+
+    polynomial p3 = p1 % p2;
     p3.print();
+    
+    // polynomial p4 = -1 * p2;
+    // polynomial p5 = p2 * -1;
+    // p4.print();
+    // p5.print();
 
-    // Addition of a polynomial and an integer
-    polynomial poly_plus_int = p1 + 10;
-    std::cout << "poly1 + 10: ";
-    poly_plus_int.print();
+    //CANONICAL TESTING
+    // std::vector<std::pair<power, coeff>> poly_input2 = {{2,7}, {4,-1}, {0,1}};
+    // polynomial p4 = polynomial(poly_input2.begin(), poly_input2.end());
+    // std::vector<std::pair<power, coeff>> canon;
+    // canon = p4.canonical_form();
 
-    // Addition of an integer and a polynomial
-    polynomial int_plus_poly = 20 + p2;
-    std::cout << "20 + poly2: ";
-    int_plus_poly.print();
-
-    // Multiplication of two polynomials
-    polynomial poly_product = p1 * p2;
-    std::cout << "poly1 * poly2: ";
-    poly_product.print();
-
-    // Multiplication of a polynomial and an integer
-    polynomial poly_times_int = p1 * 10;
-    std::cout << "poly1 * 10: ";
-    poly_times_int.print();
-
-    // Multiplication of an integer and a polynomial
-    polynomial int_times_poly = 20 * p2;
-    std::cout << "20 * poly2: ";
-    int_times_poly.print();
-
+    // for (auto it: canon)
+    // {
+    //     std::cout << it.first << ", "<< it.second << "  ";
+    // }
+    
+    
     // std::optional<double> result = poly_test(p1, p2, solution);
 
     // if (result.has_value())

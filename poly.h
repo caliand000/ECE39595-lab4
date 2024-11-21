@@ -1,6 +1,7 @@
 #ifndef POLY_H
 #define POLY_H
 
+#include <map>
 #include <vector>
 #include <utility>
 #include <cstddef>
@@ -42,9 +43,10 @@ public:
     template <typename Iter>
     polynomial(Iter begin, Iter end){
         for(Iter it = begin; it!=end; it++) {
-            terms.push_back(*it);
+            terms.push_back(*it);  // assign key value pairs
         }
-    }
+
+    };
 
     /**
      * @brief Construct a new polynomial object from an existing polynomial object
@@ -53,6 +55,8 @@ public:
      *  The polynomial to copy
      */
     polynomial(const polynomial &other);
+
+     std::map<power, coeff, std::greater<power>> sortMap() const;
 
     /**
      * @brief Prints the polynomial.
@@ -110,7 +114,8 @@ public:
     // Friend function for multiplication of an integer and a polynomial
     friend polynomial operator*(int value, const polynomial &poly);
 
-    
+    // Modulo of a polynomial with another polynomial
+    polynomial operator%(const polynomial &p2);
 
     /**
      * @brief Returns the degree of the polynomial
@@ -141,6 +146,7 @@ public:
      *  A vector of pairs representing the canonical form of the polynomial
      */
     std::vector<std::pair<power, coeff>> canonical_form() const;
+
 };
 
 #endif
