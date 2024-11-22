@@ -144,7 +144,7 @@ polynomial operator*(int value, const polynomial &poly) {
     return result;
 }
 
-polynomial polynomial::operator%(const polynomial &p2) {
+polynomial polynomial::operator%(polynomial &p2) {
         /*
         assuming sorted vecs
         we need to perform division as long as there is an exponent that is of the same power
@@ -185,7 +185,10 @@ polynomial polynomial::operator%(const polynomial &p2) {
     int powers;
     int coeffs;
     auto origIt = terms.begin();
-    
+    if (this->find_degree_of() < p2.find_degree_of())
+    {
+        return *this;
+    }
     do {
         // make dividend subset with as many terms as the divisor (p2), or if there are no more terms left
         while ((int)subset.terms.size() <= numTermsP2 && origIt != terms.end()) {
@@ -203,9 +206,9 @@ polynomial polynomial::operator%(const polynomial &p2) {
         // store into the subtracting polynomial
         subtracts.terms.push_back({powers, coeffs});    // add cancel term to subtracts polynomial
         std::sort(subtracts.terms.begin(), subtracts.terms.end(), std::greater<std::pair<power, coeff>>()); // sort in descending order of powers
-        
+
         subset = subset + (subtracts * p2 * -1); // perform the subtraction to get whats left and put in subset poly
-        
+
         // get rid of zeros
         subset.terms.erase(
             std::remove_if(subset.terms.begin(), subset.terms.end(), [](const std::pair<power, coeff> &term) {
@@ -214,15 +217,18 @@ polynomial polynomial::operator%(const polynomial &p2) {
             subset.terms.end()
         );
 
-        //sort again
-        std::sort(subset.terms.begin(), subset.terms.end(), std::greater<std::pair<power, coeff>>());
         subtracts.terms.clear(); // Reset subtraction terms for next iteration
     } while (!subset.terms.empty() && subset.find_degree_of() >= p2.terms.front().first);
 
+    if (subset.terms.size() == 0)
+    {
+        subset.terms.push_back({0,0});
+    }
     return subset;
 }
 
 size_t polynomial::find_degree_of() {
+    std::sort(terms.begin(), terms.end(), std::greater<std::pair<power, coeff>>());
     return terms.begin() -> first;
 }
 

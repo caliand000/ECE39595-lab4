@@ -38,8 +38,8 @@ int main()
     // std::vector<std::pair<power, coeff>> poly_input = {{3,1}, {2,-2}, {1,0}, {0,-4}};
     // std::vector<std::pair<power, coeff>> poly_input2 = {{1,1}, {0, -3}};
     // 3x4−5x2+3 by x+2.
-    std::vector<std::pair<power, coeff>> poly_input = {{4,3}, {2,-5}, {0,3}};
-    std::vector<std::pair<power, coeff>> poly_input2 = {{1,1}, {0, 2}};
+    std::vector<std::pair<power, coeff>> poly_input = {{2,1}, {1,5}, {0,6}};
+    std::vector<std::pair<power, coeff>> poly_input2 = { {3,1}, {1, 1}};
 
     // std::vector<std::pair<power, coeff>> poly_input = {{3,1}, {2,1},{1,1}, {0,1}};
     // std::vector<std::pair<power, coeff>> poly_input2 = {{1,1}, {0, 9}};

@@ -115,7 +115,7 @@ public:
     friend polynomial operator*(int value, const polynomial &poly);
 
     // Modulo of a polynomial with another polynomial
-    polynomial operator%(const polynomial &p2);
+    polynomial operator%(polynomial &p2);
 
     /**
      * @brief Returns the degree of the polynomial
