@@ -11,7 +11,7 @@ using power = size_t;
 using coeff = int;
 
 class polynomial
-{
+{    
 
 public:
     /*

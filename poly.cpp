@@ -1,6 +1,9 @@
 #include "poly.h"
 #include <utility>
 #include <algorithm>
+#include <thread>
+
+
 // Default constructor: creates a polynomial representing the number 0
 polynomial::polynomial() {
     terms.push_back({0,0});
@@ -56,8 +59,14 @@ void polynomial::print() const {
     std::cout << std::endl;
 }
 
+bool compareDescendingPower(const std::pair<size_t, int>& a, const std::pair<size_t, int>& b) {
+    return a.first > b.first;
+}
+
 // Addition of two polynomials
 polynomial polynomial::operator+(const polynomial &other) const {
+
+    /*
     polynomial result = *this;
     for (const auto &term : other.terms) {
         bool found = false;
@@ -73,6 +82,71 @@ polynomial polynomial::operator+(const polynomial &other) const {
         }
     }
     return result;
+    */
+   
+   
+   polynomial result;
+
+   // Combine terms from both polynomials
+    std::vector<std::pair<power, coeff>> combined_terms = this->terms;
+    combined_terms.insert(combined_terms.end(), other.terms.begin(), other.terms.end());
+
+    // Sort the terms in descending order of power
+    std::sort(combined_terms.begin(), combined_terms.end(), compareDescendingPower);
+
+    //now set up multi threading and break up work in combined terms
+    std::vector<std::vector<std::pair<power, coeff>>> thread_results(5);
+    size_t chunk_size = combined_terms.size() / 5;
+
+    auto intermediate_add = [&](size_t start, size_t end, size_t thread_index) {
+        for (size_t i = start; i < end; ++i) {
+            const auto &term = combined_terms[i];
+            bool found = false;
+
+            for (auto &res_term : thread_results[thread_index]) {
+                if (res_term.first == term.first) {
+                    res_term.second += term.second; // Add coefficients if powers are the same
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                thread_results[thread_index].push_back(term); // Add new term if power is not found
+            }
+        }
+    };
+
+    std::thread t1(intermediate_add, 0, chunk_size, 0);
+    std::thread t2(intermediate_add, chunk_size, 2 * chunk_size, 1);
+    std::thread t3(intermediate_add, 2 * chunk_size, 3 * chunk_size, 2);
+    std::thread t4(intermediate_add, 3 * chunk_size, 4 * chunk_size, 3);
+    std::thread t5(intermediate_add, 4 * chunk_size, combined_terms.size(), 4);
+
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+    t5.join();
+
+    // Combine results from all threads
+    for (const auto &thread_result : thread_results) {
+        result.terms.insert(result.terms.end(), thread_result.begin(), thread_result.end());
+    }
+
+    // Sort the result terms by power and combine terms with the same power
+    std::sort(result.terms.begin(), result.terms.end(), compareDescendingPower);
+    // std::sort(result.terms.begin(), result.terms.end());
+    auto it = result.terms.begin();
+    while (it != result.terms.end() - 1) {
+        if (it->first == (it + 1)->first) {
+            it->second += (it + 1)->second;
+            result.terms.erase(it + 1);
+        } else {
+            ++it;
+        }
+    }
+
+    return result; // Return the result polynomial
 }
 
 // Addition of a polynomial and an integer
