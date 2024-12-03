@@ -16,7 +16,8 @@ std::optional<double> poly_test(polynomial& p1,
 {
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     std::cout << "Starting test" << std::endl;
-    polynomial p3 = p1 + p2;
+    polynomial p3 = p1 * p2;
+    std::cout << "Finished multiplication" << std::endl;
 
     auto p3_can_form = p3.canonical_form();
 
@@ -84,6 +85,8 @@ int main()
     // }
 
     
+
+    
     std::vector<std::pair<power, coeff>> solution = build_poly_from_file("result.txt").canonical_form();
     
     polynomial p1(build_poly_from_file("poly1.txt"));
@@ -102,8 +105,11 @@ int main()
     {
         std::cout << "Failed test" << std::endl;
     }
+    
+
 
     /*
+    
     // Create two polynomials
     std::vector<std::pair<power, coeff>> poly_input1 = {{3, 1}, {2, 1}, {1, 1}, {0, 1}}; // x^3 + x^2 + x + 1
     std::vector<std::pair<power, coeff>> poly_input2 = {{1, 1}, {0, 9}}; // x + 9
@@ -118,12 +124,12 @@ int main()
     p2.print();
 
     // Add the polynomials
-    polynomial p3 = p1 + p2;
+    polynomial p3 = p1 * p2;
 
     // Print the result
-    std::cout << "Result of addition: ";
+    std::cout << "Result of multiplication: ";
     p3.print();
+    
     */
-
     
 }

@@ -173,6 +173,8 @@ polynomial operator+(int value, const polynomial &poly) {
 
 // Multiplication of two polynomials
 polynomial polynomial::operator*(const polynomial &other) const {
+
+    /*
     polynomial result;
     result.terms.clear(); // Clear the default term (0, 0)
 
@@ -195,6 +197,91 @@ polynomial polynomial::operator*(const polynomial &other) const {
         }
     }
     return result;
+    */
+
+
+   
+   polynomial result; // Start with an empty polynomial
+
+    // Combine terms from both polynomials
+    std::vector<std::pair<power, coeff>> combined_terms = this->terms;
+    // combined_terms.insert(combined_terms.end(), other.terms.begin(), other.terms.end());
+
+
+    // // Sort combined terms by power (ascending order)
+    // std::sort(combined_terms.begin(), combined_terms.end(), compareDescendingPower);
+
+    // Determine the number of threads to use
+    size_t num_threads = 10; // Fixed number of threads
+    size_t chunk_size = combined_terms.size() / num_threads;
+    std::vector<std::vector<std::pair<power, coeff>>> thread_results(num_threads);
+
+    // Lambda function to add terms to the thread-specific result vector
+    auto intermediate_multiply = [&](size_t start, size_t end, size_t thread_index) {
+        for (size_t i = start; i < end; ++i) {
+            for (auto &res_term : other.terms) {
+                power new_power = combined_terms[i].first + res_term.first;
+                coeff new_coeff = combined_terms[i].second * res_term.second;
+
+                bool found = false;
+                for (auto &thread_term : thread_results[thread_index]) {
+                    if (thread_term.first == new_power) {
+                        thread_term.second += new_coeff;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    thread_results[thread_index].push_back(std::make_pair(new_power, new_coeff));
+                }
+                
+            }
+        }
+    };
+
+    // Create and start threads
+    std::thread t1(intermediate_multiply, 0, chunk_size, 0);
+    std::thread t2(intermediate_multiply, chunk_size, 2 * chunk_size, 1);
+    std::thread t3(intermediate_multiply, 2 * chunk_size, 3 * chunk_size, 2);
+    std::thread t4(intermediate_multiply, 3 * chunk_size, 4 * chunk_size, 3);
+    std::thread t5(intermediate_multiply, 3 * chunk_size, 5 * chunk_size, 4);
+    std::thread t6(intermediate_multiply, 5 * chunk_size, 6 * chunk_size, 5);
+    std::thread t7(intermediate_multiply, 6 * chunk_size, 7 * chunk_size, 6);
+    std::thread t8(intermediate_multiply, 7 * chunk_size, 8 * chunk_size, 7);
+    std::thread t9(intermediate_multiply, 8 * chunk_size, 9 * chunk_size, 8);
+    std::thread t10(intermediate_multiply, 9 * chunk_size, combined_terms.size(), 9);
+
+    // Join threads to ensure all threads complete before proceeding
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+    t5.join();
+    t6.join();
+    t7.join();
+    t8.join();
+    t9.join();
+    t10.join();
+
+    // Combine results from all threads
+    for (const auto &thread_result : thread_results) {
+        result.terms.insert(result.terms.end(), thread_result.begin(), thread_result.end());
+    }
+
+    // Sort the result terms by power and combine terms with the same power
+    std::sort(result.terms.begin(), result.terms.end(), compareDescendingPower);
+    auto it = result.terms.begin();
+    while (it != result.terms.end() - 1) {
+        if (it->first == (it + 1)->first) {
+            it->second += (it + 1)->second;
+            result.terms.erase(it + 1);
+        } else {
+            ++it;
+        }
+    }
+
+    return result; // Return the result polynomial
+    
 }
 
 // Multiplication of a polynomial and an integer
@@ -204,6 +291,7 @@ polynomial polynomial::operator*(int value) const {
         term.second *= value;
     }
     return result;
+    
 }
 
 // Multiplication of an integer and a polynomial
