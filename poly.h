@@ -6,12 +6,13 @@
 #include <utility>
 #include <cstddef>
 #include <iostream>
+#include <unordered_map>
 
 using power = size_t;
 using coeff = int;
 
 class polynomial
-{    
+{
 
 public:
     /*
@@ -22,7 +23,7 @@ public:
     * be represented as the vector [(2,3),(1,2),(0,1)].
     */
 
-    std::vector<std::pair<power, coeff>> terms;
+    std::unordered_map<power, coeff> terms;
 
     /**
      * @brief Construct a new polynomial object that is the number 0 (ie. 0x^0)
@@ -43,7 +44,7 @@ public:
     template <typename Iter>
     polynomial(Iter begin, Iter end){
         for(Iter it = begin; it!=end; it++) {
-            terms.push_back(*it);  // assign key value pairs
+            terms[it->first] = it->second;  // assign key value pairs
         }
 
     };
@@ -115,7 +116,7 @@ public:
     friend polynomial operator*(int value, const polynomial &poly);
 
     // Modulo of a polynomial with another polynomial
-    polynomial operator%(polynomial &p2);
+    polynomial operator%(const polynomial &p2) const;
 
     /**
      * @brief Returns the degree of the polynomial
@@ -123,7 +124,7 @@ public:
      * @return size_t
      *  The degree of the polynomial
      */
-    size_t find_degree_of();
+    size_t find_degree_of() const;
 
     /**
      * @brief Returns a vector that contains the polynomial is canonical form. This
