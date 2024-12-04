@@ -115,7 +115,7 @@ public:
     friend polynomial operator*(int value, const polynomial &poly);
 
     // Modulo of a polynomial with another polynomial
-    polynomial operator%(polynomial &p2);
+    polynomial operator%(const polynomial &p2) const;
 
     /**
      * @brief Returns the degree of the polynomial
@@ -123,7 +123,7 @@ public:
      * @return size_t
      *  The degree of the polynomial
      */
-    size_t find_degree_of();
+    size_t find_degree_of() const;
 
     /**
      * @brief Returns a vector that contains the polynomial is canonical form. This

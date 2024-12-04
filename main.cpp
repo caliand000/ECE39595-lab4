@@ -23,7 +23,7 @@ std::optional<double> poly_test(polynomial& p1,
 
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-    //p3.print();
+    // p3.print();
 
     if (p3_can_form != solution)
     {
@@ -92,7 +92,8 @@ int main()
     polynomial p1(build_poly_from_file("poly1.txt"));
     polynomial p2(build_poly_from_file("poly2.txt"));
     
-    //p2.print();
+    // p2.print();
+    // p1.print();
 
     std::optional<double> result = poly_test(p1, p2, solution);
 
@@ -108,28 +109,28 @@ int main()
     
 
 
-    /*
+    
     
     // Create two polynomials
-    std::vector<std::pair<power, coeff>> poly_input1 = {{3, 1}, {2, 1}, {1, 1}, {0, 1}}; // x^3 + x^2 + x + 1
-    std::vector<std::pair<power, coeff>> poly_input2 = {{1, 1}, {0, 9}}; // x + 9
+    // std::vector<std::pair<power, coeff>> poly_input1 = {{3, 1}, {2, 1}, {1, 1}, {0, 1}}; // x^3 + x^2 + x + 1
+    // std::vector<std::pair<power, coeff>> poly_input2 = {{1, 1}, {0, 9}}; // x + 9
 
-    polynomial p1(poly_input1.begin(), poly_input1.end());
-    polynomial p2(poly_input2.begin(), poly_input2.end());
+    // polynomial p1(poly_input1.begin(), poly_input1.end());
+    // polynomial p2(poly_input2.begin(), poly_input2.end());
 
-    // Print the input polynomials
-    std::cout << "Polynomial 1: ";
-    p1.print();
-    std::cout << "Polynomial 2: ";
-    p2.print();
+    // // Print the input polynomials
+    // std::cout << "Polynomial 1: ";
+    // p1.print();
+    // std::cout << "Polynomial 2: ";
+    // p2.print();
 
-    // Add the polynomials
-    polynomial p3 = p1 * p2;
+    // // Add the polynomials
+    // polynomial p3 = p1 * p2;
 
-    // Print the result
-    std::cout << "Result of multiplication: ";
-    p3.print();
+    // // Print the result
+    // std::cout << "Result of multiplication: ";
+    // p3.print();
     
-    */
+    
     
 }
