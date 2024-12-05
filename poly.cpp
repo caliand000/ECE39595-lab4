@@ -1,9 +1,13 @@
 #include "poly.h"
 #include <utility>
 #include <algorithm>
+#include <thread>
+#include <unordered_map>
+
+
 // Default constructor: creates a polynomial representing the number 0
 polynomial::polynomial() {
-    terms[0] = 0;
+    terms.push_back({0,0});
 }
 
 // Copy constructor
@@ -56,57 +60,110 @@ void polynomial::print() const {
     std::cout << std::endl;
 }
 
+bool compareDescendingPower(const std::pair<size_t, int>& a, const std::pair<size_t, int>& b) {
+    return a.first > b.first;
+}
+
 // Addition of two polynomials
 polynomial polynomial::operator+(const polynomial &other) const {
+
     polynomial result = *this;
-
-    for (const auto &term : other.terms)
-    {
-        result.terms[term.first] += term.second;
-        if (result.terms[term.first] == 0)
-            result.terms.erase(term.first); // remove any zero terms
+    for (const auto &term : other.terms) {
+        bool found = false;
+        for (auto &res_term : result.terms) {
+            if (res_term.first == term.first) {
+                res_term.second += term.second;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            result.terms.push_back(term);
+        }
     }
-
     return result;
+    
+   
+   
+//    polynomial result;
 
-    // std::unordered_map<power, coeff> sum;   // unordered map will make allow automatic addition of similar power coefficients
-    // result.terms.clear();
+//    // Combine terms from both polynomials
+//     std::vector<std::pair<power, coeff>> combined_terms = this->terms;
+//     combined_terms.insert(combined_terms.end(), other.terms.begin(), other.terms.end());
 
-    // for (const auto &term : terms)  // add everything from the first polynomial
-    // {
-    //     sum[term.first] += term.second;
-    // }
+//     // Sort the terms in descending order of power
+//     std::sort(combined_terms.begin(), combined_terms.end(), compareDescendingPower);
 
-    // for (const auto &term : other.terms)    // add everything from the second polynomial
-    // {
-    //     sum[term.first] += term.second;
-    // }
+//     //now set up multi threading and break up work in combined terms
+//     std::vector<std::vector<std::pair<power, coeff>>> thread_results(5);
+//     size_t chunk_size = combined_terms.size() / 5;
 
-    // for (const auto &term : sum)        // put everything back into vectors
-    // {
-    //     result.terms.push_back(std::make_pair(term.first, term.second));
-    // }
-    // return result;
+//     auto intermediate_add = [&](size_t start, size_t end, size_t thread_index) {
+//         for (size_t i = start; i < end; ++i) {
+//             const auto &term = combined_terms[i];
+//             bool found = false;
+
+//             for (auto &res_term : thread_results[thread_index]) {
+//                 if (res_term.first == term.first) {
+//                     res_term.second += term.second; // Add coefficients if powers are the same
+//                     found = true;
+//                     break;
+//                 }
+//             }
+//             if (!found) {
+//                 thread_results[thread_index].push_back(term); // Add new term if power is not found
+//             }
+//         }
+//     };
+
+//     std::thread t1(intermediate_add, 0, chunk_size, 0);
+//     std::thread t2(intermediate_add, chunk_size, 2 * chunk_size, 1);
+//     std::thread t3(intermediate_add, 2 * chunk_size, 3 * chunk_size, 2);
+//     std::thread t4(intermediate_add, 3 * chunk_size, 4 * chunk_size, 3);
+//     std::thread t5(intermediate_add, 4 * chunk_size, combined_terms.size(), 4);
+
+//     t1.join();
+//     t2.join();
+//     t3.join();
+//     t4.join();
+//     t5.join();
+
+//     // Combine results from all threads
+//     for (const auto &thread_result : thread_results) {
+//         result.terms.insert(result.terms.end(), thread_result.begin(), thread_result.end());
+//     }
+
+//     // Sort the result terms by power and combine terms with the same power
+//     std::sort(result.terms.begin(), result.terms.end(), compareDescendingPower);
+//     // std::sort(result.terms.begin(), result.terms.end());
+//     auto it = result.terms.begin();
+//     while (it != result.terms.end() - 1) {
+//         if (it->first == (it + 1)->first) {
+//             it->second += (it + 1)->second;
+//             result.terms.erase(it + 1);
+//         } else {
+//             ++it;
+//         }
+//     }
+
+//     return result; // Return the result polynomial
 }
 
 // Addition of a polynomial and an integer
 polynomial polynomial::operator+(int value) const {
     polynomial result = *this;
-    result.terms[0] += value;
+    bool found = false;
+    for (auto &term : result.terms) {
+        if (term.first == 0) {
+            term.second += value;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        result.terms.push_back(std::make_pair(0, value));
+    }
     return result;
-
-    // bool found = false;
-    // for (auto &term : result.terms) {
-    //     if (term.first == 0) {
-    //         term.second += value;
-    //         found = true;
-    //         break;
-    //     }
-    // }
-    // if (!found) {
-    //     result.terms.push_back(std::make_pair(0, value));
-    // }
-    // return result;
 }
 
 // Addition of an integer and a polynomial
@@ -116,47 +173,132 @@ polynomial operator+(int value, const polynomial &poly) {
 
 // Multiplication of two polynomials
 polynomial polynomial::operator*(const polynomial &other) const {
-    polynomial result;
-    result.terms.clear(); // Clear the default term (0, 0)
-    // std::unordered_map<power, coeff> mult;  // unordered_map to automatically add coefficients of terms with the same power
+         polynomial result;
 
-    for (const auto &term1 : terms) {
-        for (const auto &term2 : other.terms) {
-            power new_power = term1.first + term2.first;
-            coeff new_coeff = term1.second * term2.second;
-            if (new_coeff != 0)
-                result.terms[new_power] += new_coeff;
+        // Determine number of threads to use
+        size_t total_work = this->terms.size() * other.terms.size();    // total number of multiplications
+        size_t num_threads = 8; // fixed number of threads
+        size_t chunk_size = total_work / num_threads + (total_work % num_threads != 0); // determine how many terms go in a chunk
+
+        // thread stuffs
+        std::vector<std::unordered_map<power, coeff>> thread_results(num_threads);
+        std::vector<std::thread> threads(num_threads);
+
+        // lambda function to add terms to the thread-specific result vector
+        auto intermediate_multiply = [&](size_t start, size_t end, size_t thread_index) {
+            for (size_t index = start; index < end; ++index) {
+                size_t i = index / other.terms.size(); // taken from first polynomial
+                size_t j = index % other.terms.size(); // taken from second polynomial, all elements up to chunk size
+
+                power new_power = this->terms[i].first + other.terms[j].first;
+                coeff new_coeff = this->terms[i].second * other.terms[j].second;
+
+                thread_results[thread_index][new_power] += new_coeff;
+            }
+        };
+
+        // create threads
+        for (size_t i = 0; i < num_threads; ++i) {
+            size_t start = i * chunk_size;
+            size_t end = (start + chunk_size) > total_work ? total_work : start + chunk_size;   // makes sure the end does not go out of bounds
+            threads[i] = std::thread(intermediate_multiply, start, end, i);
         }
-    }
 
-    // for (const auto pair : mult)
-    // {
-    //     result.terms.push_back(std::make_pair(pair.first, pair.second));
-    // }
-    return result;
-}
+        // Join threads
+        for (size_t i = 0; i < num_threads; ++i) {
+            threads[i].join();
+        }
+
+        // Define the result unordered_map
+        std::unordered_map<power, coeff> combined_results;
+        
+        // Combine results from all threads
+        for (const auto &thread_result : thread_results) {
+            for (const auto &term : thread_result) {
+                combined_results[term.first] += term.second;
+            }
+        }
+
+        // Convert the unordered_map to a vector if needed
+        for (const auto &term : combined_results) {
+            result.terms.push_back(std::make_pair(term.first, term.second));
+        }
+
+        return result;  // Return the result polynomial
+    } 
 
 // Multiplication of a polynomial and an integer
 polynomial polynomial::operator*(int value) const {
-    polynomial result = *this;
-    for (auto &term : result.terms) {
-        term.second *= value;
-    }
-    return result;
+        polynomial result;
+
+        // similar to poly * poly, used to break up the main polynomial into chunks and multiply those chunks and reconstruct
+        // Determine number of threads to use
+        size_t num_threads = 8; // fixed number of threads
+        size_t chunk_size = terms.size() / num_threads + (terms.size() % num_threads != 0); // determine how many terms go in a chunk
+
+        // thread stuffs
+        std::vector<std::unordered_map<power, coeff>> thread_results(num_threads);
+        std::vector<std::thread> threads(num_threads);
+
+        // lambda function to add terms to the thread-specific result vector
+        auto intermediate_multiply = [&](size_t start, size_t end, size_t thread_index) {
+            for (size_t index = start; index < end; ++index) {
+                power new_power = terms[index].first;
+                coeff new_coeff = terms[index].second * value;
+
+                thread_results[thread_index][new_power] += new_coeff;
+            }
+        };
+
+        // create threads
+        for (size_t i = 0; i < num_threads; ++i) {
+            size_t start = i * chunk_size;
+            size_t end = (start + chunk_size) > terms.size() ? terms.size() : start + chunk_size;   // makes sure the end does not go out of bounds
+            threads[i] = std::thread(intermediate_multiply, start, end, i);
+        }
+
+        // Join threads
+        for (size_t i = 0; i < num_threads; ++i) {
+            threads[i].join();
+        }
+
+        // Define the result unordered_map
+        std::unordered_map<power, coeff> combined_results;
+        
+        // Combine results from all threads
+        for (const auto &thread_result : thread_results) {
+            for (const auto &term : thread_result) {
+                combined_results[term.first] += term.second;
+            }
+        }
+
+        // Convert the unordered_map to a vector
+        for (const auto &term : combined_results) {
+            result.terms.push_back(std::make_pair(term.first, term.second));
+        }
+
+        return result;  // Return the result polynomial
+    
+    // polynomial result = *this;
+    // for (auto &term : result.terms) {
+    //     term.second *= value;
+    // }
+    // return result;
+    
 }
 
 // Multiplication of an integer and a polynomial
 polynomial operator*(int value, const polynomial &poly) {
-    polynomial result = poly;
+    polynomial result;
 
     // go thru all elements and multiply scalar
-    for (auto &term : result.terms) {
-        term.second *= value;
-        // result.terms.push_back({term.first, term.second * value});
+    for (const auto &term : poly.terms) {
+        result.terms.push_back({term.first, term.second * value});
     }
 
     return result;
 }
+
 
 polynomial polynomial::operator%(const polynomial &p2) const{
         /*
@@ -191,30 +333,72 @@ polynomial polynomial::operator%(const polynomial &p2) const{
             - x^2 + 0x
 
     
-    */
-    std::unordered_map<power, coeff> dividend;
-    std::unordered_map<power, coeff> divisor;
+    // */
+    polynomial divisor = p2;
+    polynomial newDividend = *this;
+    polynomial quotient;
+    polynomial subtracts;
+
+    std::pair<int, power> divid = newDividend.findDegAndInd();
+    std::pair<int, power> divis = divisor.findDegAndInd();
+
+    size_t dividendInd = divid.first;
+    power dividendPower = divid.second;
+
+    size_t divisorInd = divis.first;
+    power divisorPower = divis.second;
     
-    
-    // THIS IS JUST CODE TO PREVENT TIMING OUT FOR THE MODULUS TEST CASES 
-    if (this->find_degree_of() < p2.find_degree_of())   // return the divisor if the dividend has a higher power
+    // auto [dividendInd, dividendPower] = newDividend.findDegAndInd();
+    // auto [divisorInd, divisorPower] = divisor.findDegAndInd();
+
+    if (divisorPower > dividendPower)
     {
         return *this;
     }
 
-    return *this;
-    /////////////////////////
+    // while dividend power is higher than divisor power
+    while (dividendPower >= divisorPower)
+    {
+        // calculate new coefficient and power
+        auto multCoeff = newDividend.terms[dividendInd].second / divisor.terms[divisorInd].second;
+        auto multPower = dividendPower - divisorPower;
+        
+        // add new single term polynomial to quotient
+        quotient.terms.push_back({multPower, multCoeff});
+        
+        // perform operations
+        subtracts = quotient * divisor * -1;
+        newDividend = newDividend + subtracts;
+        
+        // update dividend degree
+        auto dividUpdate = newDividend.findDegAndInd();
+        dividendInd = dividUpdate.first;
+        dividendPower = dividUpdate.second;
+        
+        quotient.terms.clear(); // remove the term to make way for another single term
+    }
 
-    // ACTUAL MODULUS CODE
+    
+    return newDividend;
+    // get new term
+
+
+    
+
+
+    
+
+
+    // return *this;
+
     // int numTermsP2 = p2.terms.size();
-    // polynomial dividend = *this;
-    // polynomial divisor = p2;
+
     // polynomial subset;
     // polynomial subtracts;
     // int powers;
     // int coeffs;
     // auto origIt = terms.begin();
-    // if (dividend.find_degree_of() < divisor.find_degree_of())
+    // if (this->find_degree_of() < p2.find_degree_of())
     // {
     //     return *this;
     // }
@@ -229,14 +413,14 @@ polynomial polynomial::operator%(const polynomial &p2) const{
     //     std::sort(subset.terms.begin(), subset.terms.end(), std::greater<std::pair<power, coeff>>());
 
     //     // find power and coefficient to cancel out subset when subtracting
-    //     powers = subset.terms.front().first - divisor.terms.front().first;
-    //     coeffs = subset.terms.front().second / divisor.terms.front().second;
+    //     powers = subset.terms.front().first - p2.terms.front().first;
+    //     coeffs = subset.terms.front().second / p2.terms.front().second;
 
     //     // store into the subtracting polynomial
     //     subtracts.terms.push_back({powers, coeffs});    // add cancel term to subtracts polynomial
     //     std::sort(subtracts.terms.begin(), subtracts.terms.end(), std::greater<std::pair<power, coeff>>()); // sort in descending order of powers
 
-    //     subset = subset + (subtracts * divisor * -1); // perform the subtraction to get whats left and put in subset poly
+    //     subset = subset + (subtracts * p2 * -1); // perform the subtraction to get whats left and put in subset poly
 
     //     // get rid of zeros
     //     subset.terms.erase(
@@ -247,7 +431,7 @@ polynomial polynomial::operator%(const polynomial &p2) const{
     //     );
 
     //     subtracts.terms.clear(); // Reset subtraction terms for next iteration
-    // } while (!subset.terms.empty() && subset.find_degree_of() >= divisor.terms.front().first);
+    // } while (!subset.terms.empty() && subset.find_degree_of() >= p2.terms.front().first);
 
     // if (subset.terms.size() == 0)
     // {
@@ -256,19 +440,72 @@ polynomial polynomial::operator%(const polynomial &p2) const{
     // return subset;
 }
 
-size_t polynomial::find_degree_of() const{
-    size_t degree = 0;
-    for (const auto &term : terms)
+size_t polynomial::find_degree_of() const {
+    size_t deg = 0;
+    for (const auto & pair : terms) // go through and find the highest degree
     {
-        if (term.first > degree)
-        {
-            degree = term.first;
-        }
+        deg = (pair.first > deg) ? pair.first : deg;
     }
-    return degree;
+    return deg;
+}
 
-    // std::sort(terms.begin(), terms.end(), std::greater<std::pair<power, coeff>>());
-    // return terms.begin() -> first;
+void polynomial::sortTerms() {
+    std::sort(terms.begin(), terms.end(), std::greater<std::pair<power, coeff>>());
+}
+
+// index, power
+std::pair<int, power> polynomial::findDegAndInd() const{
+
+        // similar to poly * poly, used to break up the main polynomial into chunks and multiply those chunks and reconstruct
+        // Determine number of threads to use
+        size_t num_threads = 8; // fixed number of threads
+        size_t chunk_size = terms.size() / num_threads + (terms.size() % num_threads != 0); // determine how many terms go in a chunk
+
+        // thread stuffs
+        // std::vector<std::unordered_map<power, coeff>> thread_results(num_threads);
+        std::vector<std::pair<int, power>> degIndResult((num_threads > terms.size()) ? terms.size() : num_threads);
+        std::vector<std::thread> threads((num_threads > terms.size()) ? terms.size() : num_threads);
+
+        // lambda function to add terms to the thread-specific result vector
+        auto intermediate_multiply = [&](size_t start, size_t end, size_t thread_index) {
+            int maxInd = start;
+            power max_power = (terms[start].second != 0) ? terms[start].first : 0;
+            for (size_t i = start + 1; i < end; ++i) {
+                if ((terms[i].second != 0) && (terms[i].first > max_power))
+                {
+                    max_power = terms[i].first;
+                    maxInd = i;
+                }
+            }
+
+            degIndResult[thread_index] = {maxInd, max_power};
+        };
+
+        // create threads   
+        for (size_t i = 0; i < num_threads && i < terms.size(); ++i) {
+            size_t start = i * chunk_size;
+            size_t end = (start + chunk_size) > terms.size() ? terms.size() : start + chunk_size;   // makes sure the end does not go out of bounds
+            threads[i] = std::thread(intermediate_multiply, start, end, i);
+        }
+
+        // Join threads
+        for (auto& t : threads) {
+            t.join();
+        }
+
+        // find the highest index and power
+        int maxInd = 0;
+        power maxPower = 0;
+        for (const auto &thread_result : degIndResult) {
+            if ((terms[thread_result.first].second != 0) && thread_result.second > maxPower)
+            {
+                maxInd = thread_result.first;
+                maxPower = thread_result.second;
+            }
+        }
+        
+        return {maxInd, maxPower};
+
 }
 
 
