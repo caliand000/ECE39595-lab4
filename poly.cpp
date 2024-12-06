@@ -66,22 +66,53 @@ bool compareDescendingPower(const std::pair<size_t, int>& a, const std::pair<siz
 
 // Addition of two polynomials
 polynomial polynomial::operator+(const polynomial &other) const {
+    polynomial result;
+    result.terms.clear();
+    std::unordered_map<power, coeff> combineTerms;
+    for (const auto &term : terms)
+    {
+        if (term.second != 0)
+            combineTerms[term.first] += term.second;
+    }
 
-    polynomial result = *this;
-    for (const auto &term : other.terms) {
-        bool found = false;
-        for (auto &res_term : result.terms) {
-            if (res_term.first == term.first) {
-                res_term.second += term.second;
-                found = true;
-                break;
+    for (const auto &term : other.terms)
+    {
+        if (term.second != 0)
+        {
+            combineTerms[term.first] += term.second;
+            if (combineTerms[term.first] == 0)
+            {
+                combineTerms.erase(term.first);    
             }
         }
-        if (!found) {
-            result.terms.push_back(term);
-        }
     }
+
+    result.terms.reserve(combineTerms.size());
+    for (const auto &term : combineTerms)
+    {
+        result.terms.push_back(std::make_pair(term.first, term.second));
+    }
+
+    // THIS ONE
+    result.sortTerms();
+    
+    
     return result;
+    // 
+    // for (const auto &term : other.terms) {
+    //     bool found = false;
+    //     for (auto &res_term : result.terms) {
+    //         if (res_term.first == term.first) {
+    //             res_term.second += term.second;
+    //             found = true;
+    //             break;
+    //         }
+    //     }
+    //     if (!found) {
+    //         result.terms.push_back(term);
+    //     }
+    // }
+    // return result;
     
    
    
@@ -177,7 +208,7 @@ polynomial polynomial::operator*(const polynomial &other) const {
 
         // Determine number of threads to use
         size_t total_work = this->terms.size() * other.terms.size();    // total number of multiplications
-        size_t num_threads = 8; // fixed number of threads
+        size_t num_threads = 10; // fixed number of threads
         size_t chunk_size = total_work / num_threads + (total_work % num_threads != 0); // determine how many terms go in a chunk
 
         // thread stuffs
@@ -233,7 +264,7 @@ polynomial polynomial::operator*(int value) const {
 
         // similar to poly * poly, used to break up the main polynomial into chunks and multiply those chunks and reconstruct
         // Determine number of threads to use
-        size_t num_threads = 8; // fixed number of threads
+        size_t num_threads = 10; // fixed number of threads
         size_t chunk_size = terms.size() / num_threads + (terms.size() % num_threads != 0); // determine how many terms go in a chunk
 
         // thread stuffs
@@ -334,22 +365,104 @@ polynomial polynomial::operator%(const polynomial &p2) const{
 
     
     // */
-    polynomial divisor = p2;
+    // polynomial newDividend = *this;
+    // polynomial quotient;
+
+    // // Get the degree and index of the divisor
+    // auto [divisorInd, divisorPower] = p2.findDegAndInd();
+    // if (divisorPower > newDividend.findDegAndInd().second) {
+    //     return newDividend; // If divisor degree is greater, remainder is the dividend
+    // }
+
+    // // Main loop for division
+    // while (true) {
+    //     // Get the current degree and coefficient of the dividend
+    //     auto [dividendInd, dividendPower] = newDividend.findDegAndInd();
+
+    //     // If the dividend degree is less than the divisor degree, stop
+    //     if (dividendPower < divisorPower) {
+    //         break;
+    //     }
+
+    //     // Calculate the new term of the quotient
+    //     auto multCoeff = newDividend.terms[dividendInd].second / p2.terms[divisorInd].second;
+    //     auto multPower = dividendPower - divisorPower;
+
+    //     // Subtract (quotientTerm * divisor) from the current dividend
+    //     polynomial singleTerm;
+    //     singleTerm.terms.clear();
+    //     singleTerm.terms.push_back(std::make_pair(multPower, multCoeff)); // Single-term polynomial
+    //     newDividend = newDividend + (-1 *(singleTerm * p2));
+        
+    //     // Update for the next iteration
+    //     if (newDividend.terms.empty()) {
+    //         break; // If the dividend becomes zero, we're done
+    //     }
+    // }
+
+    // return newDividend; // Remainder is the final newDividend
+
+
+
+
+
+
+    // polynomial divisor = p2;
+    // polynomial newDividend = *this;
+
+
+    // std::pair<int, power> divid = newDividend.findDegAndInd();
+    // std::pair<int, power> divis = divisor.findDegAndInd();
+
+    // size_t dividendInd = divid.first;
+    // power dividendPower = divid.second;
+
+    // size_t divisorInd = divis.first;
+    // power divisorPower = divis.second;
+    
+    // // auto [dividendInd, dividendPower] = newDividend.findDegAndInd();
+    // // auto [divisorInd, divisorPower] = divisor.findDegAndInd();
+
+    // if (divisorPower > dividendPower)
+    // {
+    //     return *this;
+    // }
+
+    // // while dividend power is higher than divisor power
+    // while (dividendPower >= divisorPower)
+    // {
+    //     // calculate new coefficient and power
+    //     auto multCoeff = newDividend.terms[dividendInd].second / divisor.terms[divisorInd].second;
+    //     auto multPower = dividendPower - divisorPower;
+        
+    //     // add new single term polynomial to quotient
+    //     polynomial singleTerm;
+    //     singleTerm.terms[0] = std::make_pair(multPower, multCoeff);
+        
+    //     // perform operations
+    //     newDividend = newDividend + (singleTerm * divisor * -1);
+        
+    //     // update dividend degree
+    //     auto dividUpdate = newDividend.findDegAndInd();
+    //     dividendInd = dividUpdate.first;
+    //     dividendPower = dividUpdate.second;
+    // }
+
+    
+    // return newDividend;
+
+    //polynomial divisor = p2;
     polynomial newDividend = *this;
-    polynomial quotient;
-    polynomial subtracts;
+    polynomial singleTerm;
 
-    std::pair<int, power> divid = newDividend.findDegAndInd();
-    std::pair<int, power> divis = divisor.findDegAndInd();
+    std::pair<int, power> divid = this->findDegAndInd();
+    std::pair<int, power> divis = p2.findDegAndInd();
 
-    size_t dividendInd = divid.first;
+    //size_t dividendInd = divid.first;
     power dividendPower = divid.second;
 
     size_t divisorInd = divis.first;
     power divisorPower = divis.second;
-    
-    // auto [dividendInd, dividendPower] = newDividend.findDegAndInd();
-    // auto [divisorInd, divisorPower] = divisor.findDegAndInd();
 
     if (divisorPower > dividendPower)
     {
@@ -360,26 +473,31 @@ polynomial polynomial::operator%(const polynomial &p2) const{
     while (dividendPower >= divisorPower)
     {
         // calculate new coefficient and power
-        auto multCoeff = newDividend.terms[dividendInd].second / divisor.terms[divisorInd].second;
+        auto multCoeff = newDividend.terms[0].second / p2.terms[divisorInd].second;
         auto multPower = dividendPower - divisorPower;
-        
         // add new single term polynomial to quotient
-        quotient.terms.push_back({multPower, multCoeff});
-        
+        singleTerm.terms[0] = std::make_pair(multPower, multCoeff);        
+
         // perform operations
-        subtracts = quotient * divisor * -1;
-        newDividend = newDividend + subtracts;
-        
+        //subtracts = quotient * divisor * -1;
+        newDividend = newDividend + (singleTerm * p2 * -1);
+
         // update dividend degree
-        auto dividUpdate = newDividend.findDegAndInd();
-        dividendInd = dividUpdate.first;
-        dividendPower = dividUpdate.second;
-        
-        quotient.terms.clear(); // remove the term to make way for another single term
+        dividendPower = newDividend.terms[0].first;
+        // auto dividUpdate = newDividend.findDegAndInd();
+        // dividendInd = dividUpdate.first;
+        // dividendPower = dividUpdate.second;
+
+        // newDividend.print();
+        //quotient.terms.clear(); // remove the term to make way for another single term
     }
 
-    
     return newDividend;
+
+
+
+
+
     // get new term
 
 
@@ -458,7 +576,7 @@ std::pair<int, power> polynomial::findDegAndInd() const{
 
         // similar to poly * poly, used to break up the main polynomial into chunks and multiply those chunks and reconstruct
         // Determine number of threads to use
-        size_t num_threads = 8; // fixed number of threads
+        size_t num_threads = 10; // fixed number of threads
         size_t chunk_size = terms.size() / num_threads + (terms.size() % num_threads != 0); // determine how many terms go in a chunk
 
         // thread stuffs
