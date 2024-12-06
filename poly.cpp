@@ -15,30 +15,52 @@ polynomial::polynomial(const polynomial &other) {
     terms = other.terms;
 }
 
-std::vector<std::pair<power, coeff>> polynomial::canonical_form() const{
-    std::map<power, coeff, std::greater<power>> sorted;
-    std::vector<std::pair<power, coeff>> output0;
-    // only one term in there
+// std::vector<std::pair<power, coeff>> polynomial::canonical_form() const{
+//     std::map<power, coeff, std::greater<power>> sorted;
+//     std::vector<std::pair<power, coeff>> output0;
+//     // only one term in there
 
 
-    for (auto it : terms)
+//     for (auto it : terms)
+//     {
+//         if (it.second != 0)
+//         {
+//             sorted[it.first] = it.second;
+//         }
+//     }
+
+//     //std::cout<<sorted.size();
+//     if (sorted.size() == 0)  
+//     {
+//         output0.push_back({0, 0});
+//         return output0;
+//     }
+//     std::vector<std::pair<power, coeff>> output(sorted.begin(), sorted.end());
+//     return output;
+
+// }
+
+std::vector<std::pair<power, coeff>> polynomial::canonical_form() const
+{
+    std::vector<std::pair<power, coeff>> output;
+
+    // Process non-zero terms from the unordered_map
+    for (const auto& term : this->terms)
     {
-        if (it.second != 0)
+        if (term.second != 0) // Include only non-zero coefficients
         {
-            sorted[it.first] = it.second;
+            output.emplace_back(term.first, term.second);
         }
     }
 
-    //std::cout<<sorted.size();
-    if (sorted.size() == 0)  
-    {
-        output0.push_back({0, 0});
-        return output0;
-    }
-    std::vector<std::pair<power, coeff>> output(sorted.begin(), sorted.end());
-    return output;
+    // Sort the terms by power in descending order
+    std::sort(output.begin(), output.end(), [](const auto& a, const auto& b) {
+        return a.first > b.first;
+    });
 
+    return output;
 }
+
 
 polynomial &polynomial::operator=(const polynomial &other) {
     if(this == &other) {
